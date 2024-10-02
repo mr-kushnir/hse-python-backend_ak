@@ -1,8 +1,8 @@
 import json
 import math
 from http import HTTPStatus
-
 from urllib.parse import parse_qs
+
 
 # Основная функция - проверка типа соединения и методов
 async def app(scope, receive, send) -> None:
