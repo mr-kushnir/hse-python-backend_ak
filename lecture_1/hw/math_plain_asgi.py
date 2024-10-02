@@ -21,6 +21,7 @@ async def app(scope, receive, send) -> None:
     else:
         await not_found(send)
 
+
 # получаем строку и вычисляем факториал
 async def factor(scope, receive, send):
     query_string = scope.get("query_string", b"").decode()
