@@ -3,24 +3,27 @@ import math
 from http import HTTPStatus
 from urllib.parse import parse_qs
 
+async def app(scope, receive, send):
+    if scope["type"] == "http":
+        method = scope["method"]
+        path = scope["path"]
 
-# Основная функция - проверка типа соединения и методов
-async def app(scope, receive, send) -> None:
-    assert scope["type"] == "http"
-    method = scope["method"]
-    path = scope["path"]
-
-    # Определяем обработчик
-    if method == "GET" and path == "/factorial":
-        await factor(scope, receive, send)
-    elif method == "GET" and path.startswith("/fibonacci"):
-        await fib(scope, receive, send)
-    elif method == "GET" and path == "/mean":
-        await mean(scope, receive, send)
-    # Если нет - 404
-    else:
-        await not_found(send)
-
+        if method == "GET" and path == "/factorial":
+            await factor(scope, receive, send)
+        elif method == "GET" and path.startswith("/fibonacci"):
+            await fib(scope, receive, send)
+        elif method == "POST" and path == "/mean":
+            await mean(scope, receive, send)
+        else:
+            await not_found(send)
+    elif scope["type"] == "lifespan":
+        while True:
+            message = await receive()
+            if message["type"] == "lifespan.startup":
+                await send({"type": "lifespan.startup.complete"})
+            elif message["type"] == "lifespan.shutdown":
+                await send({"type": "lifespan.shutdown.complete"})
+                return
 
 # получаем строку и вычисляем факториал
 async def factor(scope, receive, send):
