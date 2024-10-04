@@ -1,10 +1,9 @@
-from fastapi import FastAPI, HTTPException, status, Query, Body, Response, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, status, Query, Body, Response, WebSocket, WebSocketDisconnect, Request
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import uuid
-from prometheus_client import start_http_server, Summary
+from prometheus_client import Counter, Histogram, start_http_server, generate_latest
 from contextlib import asynccontextmanager
-
 app = FastAPI()
 
 # Модели данных
@@ -268,19 +267,27 @@ async def chat(ws: WebSocket, room: str):
     except WebSocketDisconnect:
         manager.disconnect(ws, room)  # Если отключился - удаляем из комнаты
 
-# Создаем метрику Prom
-REQUEST_TIME = Summary('request_processing_seconds', 'Время запроса')
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Стартуем Prometheus-сервер для сбора метрик
-    start_http_server(8001)
-    print("Prometheus server started on port 8001")
+    start_http_server(8001)  # Запуск Prometheus-сервера для метрик
     yield
-    print("Application shutdown")
 
-# роут для метрик
+# Создаем метрику счетчика
+REQUEST_COUNT = Counter('request_count', 'Количество запросов')
+
+# Создаем гистограмму для времени обработки запросов
+REQUEST_LATENCY = Histogram('request_latency_seconds', 'Время обработки запросов')
+
 @app.get("/metrics")
-@REQUEST_TIME.time()  # Время обработки запроса
-def metrics():
-    return {"status": "metrics collected"}
+async def get_metrics():
+    return Response(generate_latest(), media_type="text/plain")
+
+@app.middleware("http")
+async def add_prometheus_metrics(request: Request, call_next):
+    REQUEST_COUNT.inc()
+    with REQUEST_LATENCY.time():
+        response = await call_next(request)
+    return response
