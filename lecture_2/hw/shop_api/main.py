@@ -2,6 +2,9 @@ from fastapi import FastAPI, HTTPException, status, Query, Body, Response, WebSo
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import uuid
+from prometheus_client import start_http_server, Summary
+from contextlib import asynccontextmanager
+
 app = FastAPI()
 
 # Модели данных
@@ -47,6 +50,10 @@ carts_db: Dict[int, Cart] = {}
 item_id_counter = 0
 cart_id_counter = 0
 
+
+@app.get("/")
+def read_root():
+    return {"message": "API is running"}
 
 # Создание новой корзины
 @app.post("/cart", status_code=status.HTTP_201_CREATED)
@@ -260,3 +267,20 @@ async def chat(ws: WebSocket, room: str):
             await manager.send(msg, room, ws)
     except WebSocketDisconnect:
         manager.disconnect(ws, room)  # Если отключился - удаляем из комнаты
+
+# Создаем метрику Prom
+REQUEST_TIME = Summary('request_processing_seconds', 'Время запроса')
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Стартуем Prometheus-сервер для сбора метрик
+    start_http_server(8001)
+    print("Prometheus server started on port 8001")
+    yield
+    print("Application shutdown")
+
+# роут для метрик
+@app.get("/metrics")
+@REQUEST_TIME.time()  # Время обработки запроса
+def metrics():
+    return {"status": "metrics collected"}
