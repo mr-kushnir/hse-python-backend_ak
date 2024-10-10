@@ -15,7 +15,8 @@ grpcio-tools = "^1.66.1"
 websockets = "^13.1"
 websocket-client = "^1.8.0"
 prometheus-client = "^0.21.0"
-
+pytest = "^7.0"
+pytest-cov = "^4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"
@@ -31,3 +32,12 @@ pytest-asyncio = "^0.24.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+source = ["lecture_4/demo_service"]
+branch = true
+
+[tool.coverage.report]
+omit = [
+    "*/__init__.py"
+]
