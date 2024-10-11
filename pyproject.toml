@@ -17,6 +17,7 @@ websocket-client = "^1.8.0"
 prometheus-client = "^0.21.0"
 pytest = "^8.3.3"
 pytest-cov = "^4.0"
+pytest-mock = "^3.14.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"
