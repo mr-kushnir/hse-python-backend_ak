@@ -165,7 +165,7 @@ async def test_neither_id_nor_username_provided(client, app):
     del app.dependency_overrides[requires_author]
 
 #
-# Тесты присвоения роли администратора
+# Тесты роли администратора
 #
 @pytest.mark.asyncio
 async def test_grant_admin_directly(app):
